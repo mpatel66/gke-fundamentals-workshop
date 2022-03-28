@@ -37,6 +37,9 @@ metadata:
   labels:
     k8s-app: static-web-app-advanced
     k8s-scope: gke-ws-doit-lab-02
+  # Can also add annotations. these are for humans and act as descriptions. one example is to have the npm package version.
+  # annotations:
+  #   npm-version: "1.2"
 spec:
   #
   # These are our two primary container definitions within the pod. both containers share the same namespaces, cgroups
@@ -44,25 +47,26 @@ spec:
   # the individual applications may have further sub-isolations applied. In terms of Docker concepts, a Pod is similar
   # to a group of Docker containers with shared namespaces and shared filesystem volumes.
   # --
+  # The first one is a main container. The second is a side-car that runs alongisde the main. The start up at the same time.
   containers:
     - name: 001-static-web-app-c
       image: doitlabs/web-app-static:1.0.5
       env:
-      - name: C_MESSAGE
-        value: "Stay Awhile & Listen; Lab-2"
+        - name: C_MESSAGE
+          value: "Stay Awhile & Listen; Lab-2"
       ports:
-      - name: http-80
-        containerPort: 80
-        protocol: TCP
+        - name: http-80
+          containerPort: 80
+          protocol: TCP
 
     - name: 002-static-web-app-sidecar-c
       image: busybox:1.28
-      command: [ "sh", "-c"]
+      command: ["sh", "-c"]
       args:
-      - while true; do
+        - while true; do
           echo "I'm really busy right now ... please come back later!";
           sleep 30;
-        done;
+          done;
 
   #
   # An Init-container in Kubernetes is a special type of container that runs to completion before the main app’s container
@@ -78,3 +82,5 @@ spec:
         - vm.max_map_count=262144
       securityContext:
         privileged: true
+# There's no security!
+# Currently, we can access the shell of the pods as a root user and run any commands as we want
