@@ -13,6 +13,7 @@ In the following lab we will set up our local development environment, provision
 ## Deployment
 
 ### Create Namespace & jump into it
+
 ```bash
 kubectl apply -f 00-namespace.yaml && kubectl config set-context --current --namespace=doit-lab-12
 ```
@@ -35,12 +36,26 @@ For example, we may have a queue of messages that needs processing. We must spaw
 kubectl apply -f 02-job-multiple.yaml && kubectl get pods --watch
 ```
 
+On applying and watching, you see 5 pods spin up and complete the job.
+
+```yaml
+spec:
+  completions: 5 # this job will run 5 times
+```
+
 #### 03. MultipleJob (03-job-parallel-wq.yaml)
 
 Another pattern may involve the need to run multiple jobs, but instead of running them one after another, we need to run several of them in parallel. Parallel processing decreases the overall execution time. It has its application in many domains, like data science and AI.
 
 ```bash
 kubectl apply -f 03-job-parallel-wq.yaml && kubectl get pods --watch
+```
+
+Instead of the pods spinning up one at time, consecutively as the previous job completes; here we have the pods spin up in parallel.
+
+```yaml
+spec:
+  parallelism: 5 # this job will run 5 times
 ```
 
 #### 04. JobRunner with exit-limitation (04-job-exec-limit.yaml)
@@ -55,7 +70,15 @@ Notice that this setting overrides .spec.backoffLimit, which means that if the p
 kubectl apply -f 04-job-exec-limit.yaml && kubectl get pods --watch
 ```
 
-#### 04. MultipleJob auto clean-up by ttl (05-job-ttl.yaml)
+You can see the pod crashing and restarting.
+
+```yaml
+spec:
+  backoffLimit: 5 # try to run 5 times before considering a Job as failed
+  activeDeadlineSeconds: 20
+```
+
+#### 05. MultipleJob auto clean-up by ttl (05-job-ttl.yaml)
 
 When a Kubernetes Job finishes, neither the Job nor the pods that it created get deleted automatically. You have to remove them manually. This feature ensures that you are still able to view the logs and the status of the finished Job and its pods.
 
@@ -63,6 +86,15 @@ It’s worth noting that there is a new feature in Kubernetes that allows you to
 
 ```bash
 kubectl apply -f 05-job-ttl.yaml && kubectl get pods --watch
+```
+
+Once the job completes, 60 seconds later the pod will terminate. This defined by the `ttlSecondsAfterFinished` property in the pod's spec. Once terminated, you won't see the pod anymore if you run `kubectl get pods`. Note that if you try to delete the deployment `kubectl apply -f 05-job-ttl.yaml`, you will get an error as it cannot find the job since it has been deleted. Running `kubectl get jobs.batch` shows that there are no jobs with this name.
+
+```yaml
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 20
+  ttlSecondsAfterFinished: 60 # The Job pi-with-ttl will be eligible to be automatically deleted, 60 seconds after it finishes.
 ```
 
 ## Application Clean-Up
