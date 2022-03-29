@@ -39,6 +39,8 @@ In the previous lab, the service was exposed to the nodes' IP addresses
 
 In lab 3, the service only had a cluster ip, so the service was only callable internally. In lab 4, the service was exposed to the nodes as long as we added a firewall rule. Now we are exposing the service externally, and when we ping this ip address, we're going straight to the service and not via the nodes.
 
+Note that the service lb can route traffic to specific services based on label.
+
 ## Cluster Application Check / Playground
 
 1. You can check the state of Pods at any time with the following kubectl command:

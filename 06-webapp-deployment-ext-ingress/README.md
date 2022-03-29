@@ -29,7 +29,9 @@ _this step can take up to 3 Minutes_
 kubectl get ingress -n doit-lab-06 --watch
 ```
 
-After the ingress is running, you'll see it has an external ip address. As well as exposing the app externally, the ingress can also provide load balancing, SSL termination and name-based virtual hosting.
+After the ingress is running, you'll see it has an external ip address. As well as exposing the app externally, the ingress can also provide load balancing, SSL termination and name-based virtual hosting. Ingress exposes HTTP and HTTPS routes, and routing is controlled by rules defined on the Ingress resource.
+
+Note that you usually need an Ingress Controller if you define an ingress. An ingress-controller is not automatically started with the cluster, but for GKE the default is GCE Ingress; it creates a load balancer for you by default as well. People also use nginx for ingress control.
 
 ## Cluster Application Check / Playground
 
