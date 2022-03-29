@@ -25,6 +25,8 @@
 # --
 #
 
+#  We define three services for each version of the app. Each service is a NodePort and exposes a TCP port
+#  through which the ingress routes requests to.
 apiVersion: v1
 kind: Service
 metadata:
@@ -38,12 +40,11 @@ spec:
   selector:
     k8s-app: static-web-app-v1
   ports:
-  - protocol: TCP
-    port: 8080
-    targetPort: 80
+    - protocol: TCP
+      port: 8080
+      targetPort: 80
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -60,9 +61,8 @@ spec:
     - protocol: TCP
       port: 8080
       targetPort: 80
-      
----
 
+---
 apiVersion: v1
 kind: Service
 metadata:
