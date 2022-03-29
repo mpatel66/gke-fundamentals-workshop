@@ -1,4 +1,3 @@
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,74 +17,77 @@ spec:
         k8s-app: elasticsearch
         k8s-scope: gke-ws-doit-lab-14
     spec:
+      #  Persistent Volume details
       volumes:
         - name: data
+          #  Here we tell the pod the name of the PVC
           persistentVolumeClaim:
             claimName: elasticsearch-data
-      terminationGracePeriodSeconds: 300
+      terminationGracePeriodSeconds: 300 # pod is given 5 minutes to shut down gracefully
       initContainers:
-      - name: fix-the-volume-permission
-        image: busybox
-        command:
-        - sh
-        - -c
-        - chown -R 1000:1000 /usr/share/elasticsearch/data
-        securityContext:
-          privileged: true
-        volumeMounts:
-        - name: data
-          mountPath: /usr/share/elasticsearch/data
-      - name: increase-the-vm-max-map-count
-        image: busybox
-        command:
-        - sysctl
-        - -w
-        - vm.max_map_count=262144
-        securityContext:
-          privileged: true
-      - name: increase-the-ulimit
-        image: busybox
-        command:
-        - sh
-        - -c
-        - ulimit -n 65536
-        securityContext:
-          privileged: true
+        - name: fix-the-volume-permission
+          image: busybox
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /usr/share/elasticsearch/data
+          # Above we change the owner of the folder and below mount the data on the PV
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data # We mount the PV onto this path
+        - name: increase-the-vm-max-map-count
+          image: busybox
+          command:
+            - sysctl
+            - -w
+            - vm.max_map_count=262144 # We change the map count here
+          securityContext:
+            privileged: true
+        - name: increase-the-ulimit
+          image: busybox
+          command:
+            - sh
+            - -c
+            - ulimit -n 65536 # increase the ulimit here
+          securityContext:
+            privileged: true
       containers:
-      - name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4
-        ports:
-        - containerPort: 9200
-          name: http
-        - containerPort: 9300
-          name: tcp
-        resources:
-          requests:
-            memory: 4Gi
-            cpu: 1000m
-          limits:
-            memory: 6Gi
-            cpu: 2000m
-        env:
-          - name: cluster.name # NOTE: the cluster name; update this
-            value: elasticsearch-cluster
-          - name: node.name
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: discovery.type
-            value: "single-node"
-          - name: ES_JAVA_OPTS
-            value: -Xms4g -Xmx4g
-        volumeMounts:
-        - name: data
-          mountPath: /usr/share/elasticsearch/data
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4
+          ports:
+            - containerPort: 9200
+              name: http
+            - containerPort: 9300
+              name: tcp
+          resources:
+            requests:
+              memory: 4Gi
+              cpu: 1000m
+            limits:
+              memory: 6Gi
+              cpu: 2000m
+          env:
+            - name: cluster.name # NOTE: the cluster name; update this
+              value: elasticsearch-cluster
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name # populate these from the definition of this deployment.
+            - name: discovery.type
+              value: "single-node"
+            - name: ES_JAVA_OPTS
+              value: -Xms4g -Xmx4g
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
 
 ---
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  #  The namespace binds the claim to the pod.
   name: elasticsearch-data
   namespace: doit-lab-14
   labels:
@@ -94,7 +96,9 @@ metadata:
 spec:
   storageClassName: premium-rwo
   accessModes:
+    # Only one pod can read write
     - ReadWriteOnce
   resources:
+    # What the pod is requesting with regards to resources from the PV
     requests:
       storage: 40Gi
