@@ -1,3 +1,4 @@
+#  Note that this is in beta
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -11,26 +12,33 @@ spec:
   minReplicas: 1
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 50
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
   behavior:
+    # Define when to scale down
     scaleDown:
+      #  Scale down after 5 minutes
       stabilizationWindowSeconds: 300
       policies:
-      - type: Percent
-        value: 25
-        periodSeconds: 30
+        #  Only scale down by 25% every 30s
+        - type: Percent
+          value: 25
+          periodSeconds: 30
+    # Define when to scale up
     scaleUp:
+      # Scale up immediately
       stabilizationWindowSeconds: 0
       policies:
-      - type: Percent
-        value: 100
-        periodSeconds: 60
-      - type: Pods
-        value: 4
-        periodSeconds: 30
+        # Scale by 100% every 60s
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+        #  Scale up to 4 pods every 30 seconds if conditions are met.
+        - type: Pods
+          value: 4
+          periodSeconds: 30
       selectPolicy: Max
