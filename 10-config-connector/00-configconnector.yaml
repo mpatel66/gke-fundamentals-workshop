@@ -1,9 +1,11 @@
 apiVersion: core.cnrm.cloud.google.com/v1beta1
 kind: ConfigConnector
+# This allows you to manage GCP resources via kubernetes
 metadata:
   # the name is restricted to ensure that there is only one
   # ConfigConnector resource installed in your cluster
   name: configconnector.core.cnrm.cloud.google.com
 spec:
- mode: cluster
- googleServiceAccount: "config-connector-sa@<PROJECT_ID>.iam.gserviceaccount.com"
+  #  Can also have namespace mode, which is trickier to set up.
+  mode: cluster
+  googleServiceAccount: "config-connector-sa@<PROJECT_ID>.iam.gserviceaccount.com"
